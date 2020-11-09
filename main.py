@@ -16,12 +16,19 @@ db = firestore.client()
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
 '''
-座席ステータス
-0 - 空席有
-1 - 満席
-2 - 開館前
-3 - 休館日
-4 - データ取得の失敗
+room_data
+〜〜〜〜〜
+name - 部屋の名前
+status_code - 部屋の状態
+    0: 空席有
+    1: 満席
+    2: 開館前
+    3: 休館日
+    4: データ取得の失敗
+seats_num: 空席数
+web_seats_num: web予約可能空席数
+total_seats_num: 総座席数
+update: サイト内更新時間
 '''
 room_data = {
     '1': {
@@ -29,7 +36,8 @@ room_data = {
         'status_code': 4,
         'seats_num': 0,
         'web_seats_num': 0,
-        'total_seats_num': 0
+        'total_seats_num': 0,
+        'update': '0000/00/00 00:00'
     },
 
     '2': {
@@ -37,7 +45,8 @@ room_data = {
         'status_code': 4,
         'seats_num': 0,
         'web_seats_num': 0,
-        'total_seats_num': 0
+        'total_seats_num': 0,
+        'update': '0000/00/00 00:00'
     },
 
     '3': {
@@ -45,7 +54,8 @@ room_data = {
         'status_code': 4,
         'seats_num': 0,
         'web_seats_num': 0,
-        'total_seats_num': 0
+        'total_seats_num': 0,
+        'update': '0000/00/00 00:00'
     },
 
     '4': {
@@ -53,7 +63,8 @@ room_data = {
         'status_code': 4,
         'seats_num': 0,
         'web_seats_num': 0,
-        'total_seats_num': 0
+        'total_seats_num': 0,
+        'update': '0000/00/00 00:00'
     },
 
     '5': {
@@ -61,7 +72,8 @@ room_data = {
         'status_code': 4,
         'seats_num': 0,
         'web_seats_num': 0,
-        'total_seats_num': 0
+        'total_seats_num': 0,
+        'update': '0000/00/00 00:00'
     },
 
     '6': {
@@ -69,7 +81,8 @@ room_data = {
         'status_code': 4,
         'seats_num': 0,
         'web_seats_num': 0,
-        'total_seats_num': 0
+        'total_seats_num': 0,
+        'update': '0000/00/00 00:00'
     },
 }
 
@@ -82,7 +95,14 @@ def get_room_data():
         return
 
     soup = BeautifulSoup(r.text, 'lxml')
+
+    # 座席情報の取得
     data = soup.find(class_='seat').find_all('tr')
+
+    # 更新時間の取得
+    update_str = soup.find(class_='check_date text-danger').text
+    update_strptime = datetime.strptime(update_str, '%Y/%m/%d %H:%M 更新')
+    update = update_strptime.strftime('%Y/%m/%d %H:%M')
 
     for room_id in room_data:
         seats_data = [i.text for i in data[int(room_id)].find_all('div')]
@@ -107,12 +127,15 @@ def get_room_data():
         # 座席総数
         room_data[room_id]['total_seats_num'] = int(seats_data[2])
 
+        # サイト内更新時間
+        room_data[room_id]['update'] = update
+
 
 def save_room_data_to_firestore(Request):
 
     # 空席情報の取得
     get_room_data()
-    
+
     jst = timezone(timedelta(hours=+9), 'JST')
     now = datetime.now(jst)
     date = now.strftime('%Y%m%d')
