@@ -1,3 +1,4 @@
+import re
 import requests
 from bs4 import BeautifulSoup
 import firebase_admin
@@ -101,7 +102,10 @@ def get_seat_data():
 
     # 更新時間の取得
     update_str = soup.find(class_='check_date text-danger').text
-    update_strptime = datetime.strptime(update_str, '%Y/%m/%d %H:%M 更新')
+    update_str_re = re.findall('\d', update_str)
+    if len(update_str_re) == 11:
+        update_str_re.insert(7, '0')
+    update_strptime = datetime.strptime(''.join(update_str_re), '%Y%m%d%H%M')
     update = update_strptime.strftime('%Y/%m/%d %H:%M')
 
     for seat_id in seat_data:
