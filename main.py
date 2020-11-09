@@ -16,22 +16,15 @@ db = firestore.client()
 
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
-'''
-seat_data
-〜〜〜〜〜
-name - 部屋の名前
-status_code - 部屋の状態
-    0: 空席有
-    1: 満席
-    2: 開館前
-    3: 休館日
-    4: データ取得の失敗
-seats_num: 空席数
-web_seats_num: web予約可能座席数
-total_seats_num: 総座席数
-update: サイト内更新時間
-'''
 seat_data = {
+    '''
+    - name: 部屋の名前
+    - status_code: 部屋の状態（0: 空席有, 1: 満席, 2: 開館前, 3: 休館日 4: データ取得の失敗）
+    - seats_num: 空席数
+    - web_seats_num: web予約可能座席数
+    - total_seats_num: 総座席数
+    - update: サイト内更新時間
+    '''
     '1': {
         'name': '学習席（有線LAN有）',
         'status_code': 4,
@@ -89,7 +82,6 @@ seat_data = {
 
 
 def get_seat_data():
-
     # ステータスコードが200以外だったらなんもしないで返す
     r = requests.get(target_url)
     if r.status_code != 200:
@@ -136,7 +128,6 @@ def get_seat_data():
 
 
 def save_seat_data_to_firestore(Request):
-
     # 空席情報の取得
     get_seat_data()
 
@@ -154,7 +145,6 @@ def save_seat_data_to_firestore(Request):
         db.collection('seat').document(date).set({time: seat_data})
 
     return 'ok'
-
 
 # debug
 # save_seat_data_to_firestore('ok')
