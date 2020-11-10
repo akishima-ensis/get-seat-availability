@@ -18,13 +18,15 @@ target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Log
 
 seat_data = {
     '''
-    - name: 部屋の名前
-    - status_code: 部屋の状態（0: 空席有, 1: 満席, 2: 開館前, 3: 休館日 4: データ取得の失敗）
-    - seats_num: 空席数
-    - web_seats_num: web予約可能座席数
-    - total_seats_num: 総座席数
-    - update: サイト内更新時間
+    - seat_id : 部屋のid
+        - name: 部屋の名前
+        - status_code: 部屋の状態（0: 空席有, 1: 満席, 2: 開館前, 3: 休館日 4: データ取得の失敗）
+        - seats_num: 空席数
+        - web_seats_num: web予約可能座席数
+        - total_seats_num: 総座席数
+        - update: サイト内更新時間
     '''
+    
     '1': {
         'name': '学習席（有線LAN有）',
         'status_code': 4,
