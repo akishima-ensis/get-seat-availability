@@ -134,8 +134,6 @@ def save_room_data_to_firestore(Request):
 
     # 空席情報の取得
     get_seat_data()
-    for room in room_data:
-        print(room)
 
     # ドキュメント・フィールド名の生成
     jst = timezone(timedelta(hours=+9), 'JST')
