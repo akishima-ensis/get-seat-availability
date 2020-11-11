@@ -150,9 +150,9 @@ def save_room_data_to_firestore(Request):
     doc_ref = db.collection('seat').document(date)
     doc = doc_ref.get()
     if doc.exists:
-        db.collection('seat').document(date).update({time: rooms})
+        doc_ref.update({time: rooms})
     else:
-        db.collection('seat').document(date).set({time: rooms})
+        doc_ref.set({time: rooms})
 
     return 'ok'
 
