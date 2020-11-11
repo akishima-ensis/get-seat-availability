@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
-seats = [
+room_data = [
     # - id : 部屋のid
     # - name: 部屋の名前
     # - status_code: 部屋の状態（0: 空席有, 1: 満席,  2: 閉館, 3: 開館前, 4: 休館日 5: データ取得の失敗）
@@ -89,7 +89,7 @@ def get_seat_data():
     soup = BeautifulSoup(r.text, 'lxml')
 
     # 座席情報の取得
-    data = soup.find(class_='seat').find_all('tr')
+    seats_data = soup.find(class_='seat').find_all('tr')
 
     # 更新時間の取得
     update_str = soup.find(class_='check_date text-danger').text
@@ -99,42 +99,43 @@ def get_seat_data():
     update_strptime = datetime.strptime(''.join(update_str_re), '%Y%m%d%H%M')
     update = update_strptime.strftime('%Y/%m/%d %H:%M')
 
-    for seat_dict in seats:
-        seats_data = [i.text for i in data[int(seat_dict['id']) + 1].find_all('div')]
+    for room in room_data:
 
-        # 各部屋のdictionaryを取得
-        seat = seats[seat_dict['id']]
+        # 各部屋の座席情報を取得
+        seat_data = [i.text for i in seats_data[room['id'] + 1].find_all('div')]
 
         # 座席ステータス
-        if seats_data[0] == '満\u3000席':
-            seat['status_code'] = 1
+        if seat_data[0] == '満\u3000席':
+            room['status_code'] = 1
         elif seats_data[0] == '閉\u3000館':
-            seat['status_code'] = 2
-        elif seats_data[0] == '開館前':
-            seat['status_code'] = 3
-        elif seats_data[0] == '休館日':
-            seat['status_code'] = 4
+            room['status_code'] = 2
+        elif seat_data[0] == '開館前':
+            room['status_code'] = 3
+        elif seat_data[0] == '休館日':
+            room['status_code'] = 4
         else:
-            seat['status_code'] = 0
+            room['status_code'] = 0
 
             # 空席数
-            seat['seats_num'] = int(seats_data[0])
+            room['seats_num'] = int(seat_data[0])
 
         # web空き情報
-        if seats_data[1] != '':
-            seat['web_seats_num'] = int(seats_data[1])
+        if seat_data[1] != '':
+            room['web_seats_num'] = int(seat_data[1])
 
         # 座席総数
-        seat['total_seats_num'] = int(seats_data[2])
+        room['total_seats_num'] = int(seat_data[2])
 
         # サイト内更新時間
-        seat['update'] = update
+        room['update'] = update
 
 
-def save_seat_data_to_firestore(Request):
+def save_room_data_to_firestore(Request):
 
     # 空席情報の取得
     get_seat_data()
+    for room in room_data:
+        print(room)
 
     # ドキュメント・フィールド名の生成
     jst = timezone(timedelta(hours=+9), 'JST')
@@ -151,9 +152,9 @@ def save_seat_data_to_firestore(Request):
     doc_ref = db.collection('seat').document(date)
     doc = doc_ref.get()
     if doc.exists:
-        db.collection('seat').document(date).update({time: seats})
+        db.collection('seat').document(date).update({time: room_data})
     else:
-        db.collection('seat').document(date).set({time: seats})
+        db.collection('seat').document(date).set({time: room_data})
 
     return 'ok'
 
@@ -162,4 +163,4 @@ def save_seat_data_to_firestore(Request):
 # from firebase_admin import credentials
 # cred = credentials.Certificate('serviceAccountKey.json')
 # firebase_admin.initialize_app(cred)
-# save_seat_data_to_firestore('ok')
+# save_room_data_to_firestore('ok')
