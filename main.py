@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
-room_data = [
+rooms = [
     # - id : 部屋のid
     # - name: 部屋の名前
     # - status_code: 部屋の状態（0: 空席有, 1: 満席,  2: 閉館, 3: 開館前, 4: 休館日 5: データ取得の失敗）
@@ -89,7 +89,7 @@ def get_seat_data():
     soup = BeautifulSoup(r.text, 'lxml')
 
     # 座席情報の取得
-    seats_data = soup.find(class_='seat').find_all('tr')
+    seats = soup.find(class_='seat').find_all('tr')
 
     # 更新時間の取得
     update_str = soup.find(class_='check_date text-danger').text
@@ -99,32 +99,32 @@ def get_seat_data():
     update_strptime = datetime.strptime(''.join(update_str_re), '%Y%m%d%H%M')
     update = update_strptime.strftime('%Y/%m/%d %H:%M')
 
-    for room in room_data:
+    for room in rooms:
 
         # 各部屋の座席情報を取得
-        seat_data = [i.text for i in seats_data[room['id'] + 1].find_all('div')]
+        seat = [i.text for i in seats[room['id'] + 1].find_all('div')]
 
         # 座席ステータス
-        if seat_data[0] == '満\u3000席':
+        if seat[0] == '満\u3000席':
             room['status_code'] = 1
-        elif seats_data[0] == '閉\u3000館':
+        elif seat[0] == '閉\u3000館':
             room['status_code'] = 2
-        elif seat_data[0] == '開館前':
+        elif seat[0] == '開館前':
             room['status_code'] = 3
-        elif seat_data[0] == '休館日':
+        elif seat[0] == '休館日':
             room['status_code'] = 4
         else:
             room['status_code'] = 0
 
             # 空席数
-            room['seats_num'] = int(seat_data[0])
+            room['seats_num'] = int(seat[0])
 
         # web空き情報
-        if seat_data[1] != '':
-            room['web_seats_num'] = int(seat_data[1])
+        if seat[1] != '':
+            room['web_seats_num'] = int(seat[1])
 
         # 座席総数
-        room['total_seats_num'] = int(seat_data[2])
+        room['total_seats_num'] = int(seat[2])
 
         # サイト内更新時間
         room['update'] = update
@@ -150,9 +150,9 @@ def save_room_data_to_firestore(Request):
     doc_ref = db.collection('seat').document(date)
     doc = doc_ref.get()
     if doc.exists:
-        db.collection('seat').document(date).update({time: room_data})
+        db.collection('seat').document(date).update({time: rooms})
     else:
-        db.collection('seat').document(date).set({time: room_data})
+        db.collection('seat').document(date).set({time: rooms})
 
     return 'ok'
 
