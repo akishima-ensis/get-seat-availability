@@ -5,13 +5,13 @@ import firebase_admin
 from firebase_admin import firestore
 from datetime import datetime, timedelta, timezone
 
+do_save = False
 
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
 rooms = [
     # - id : 部屋のid
     # - name: 部屋の名前
-    # - status_code: 部屋の状態（0: 空席有, 1: 満席,  2: 閉館, 3: 開館前, 4: 休館日 5: データ取得の失敗）
     # - seats_num: 空席数
     # - web_seats_num: web予約可能座席数
     # - total_seats_num: 総座席数
@@ -20,7 +20,6 @@ rooms = [
     {
         'id': 0,
         'name': '学習席（有線LAN有）',
-        'status_code': 5,
         'seats_num': 0,
         'web_seats_num': 0,
         'total_seats_num': 0,
@@ -30,7 +29,6 @@ rooms = [
     {
         'id': 1,
         'name': '学習席',
-        'status_code': 5,
         'seats_num': 0,
         'web_seats_num': 0,
         'total_seats_num': 0,
@@ -40,7 +38,6 @@ rooms = [
     {
         'id': 2,
         'name': '研究個室',
-        'status_code': 5,
         'seats_num': 0,
         'web_seats_num': 0,
         'total_seats_num': 0,
@@ -50,7 +47,6 @@ rooms = [
     {
         'id': 3,
         'name': 'インターネット・DB席',
-        'status_code': 5,
         'seats_num': 0,
         'web_seats_num': 0,
         'total_seats_num': 0,
@@ -60,7 +56,6 @@ rooms = [
     {
         'id': 4,
         'name': 'グループ学習室',
-        'status_code': 5,
         'seats_num': 0,
         'web_seats_num': 0,
         'total_seats_num': 0,
@@ -70,7 +65,6 @@ rooms = [
     {
         'id': 5,
         'name': 'ティーンズ学習室',
-        'status_code': 5,
         'seats_num': 0,
         'web_seats_num': 0,
         'total_seats_num': 0,
@@ -80,6 +74,8 @@ rooms = [
 
 
 def get_seat_data():
+
+    global do_save
 
     # ステータスコードが200以外だったらなんもしないで返す
     r = requests.get(target_url)
@@ -104,19 +100,14 @@ def get_seat_data():
         # 各部屋の座席情報を取得
         seat = [i.text for i in seats[room['id'] + 1].find_all('div')]
 
-        # 座席ステータス
-        if seat[0] == '満\u3000席':
-            room['status_code'] = 1
-        elif seat[0] == '閉\u3000館':
-            room['status_code'] = 2
-        elif seat[0] == '開館前':
-            room['status_code'] = 3
-        elif seat[0] == '休館日':
-            room['status_code'] = 4
+        # 閉館 or 開館前 or 休館日 だった場合は保存フラグをFalseにして返す
+        if seat[0] == '閉\u3000館' or seat[0] == '開館前' or seat[0] == '休館日':
+            return
+        elif seat[0] == '満\u3000席':
+            do_save = True
         else:
-            room['status_code'] = 0
-
             # 空席数
+            do_save = True
             room['seats_num'] = int(seat[0])
 
         # web空き情報
@@ -130,10 +121,7 @@ def get_seat_data():
         room['update'] = update
 
 
-def save_room_data_to_firestore(Request):
-
-    # 空席情報の取得
-    get_seat_data()
+def save_room_data_to_firestore():
 
     # ドキュメント・フィールド名の生成
     jst = timezone(timedelta(hours=+9), 'JST')
@@ -147,12 +135,21 @@ def save_room_data_to_firestore(Request):
     db = firestore.client()
 
     # ドキュメントの存在確認を行いデータを保存
-    doc_ref = db.collection('seat').document(date)
+    doc_ref = db.collection('rooms').document(date)
     doc = doc_ref.get()
     if doc.exists:
         doc_ref.update({time: rooms})
     else:
         doc_ref.set({time: rooms})
+
+
+def run(Request):
+
+    # 座席情報の取得
+    get_seat_data()
+
+    if do_save:
+        save_room_data_to_firestore()
 
     return 'ok'
 
@@ -161,4 +158,4 @@ def save_room_data_to_firestore(Request):
 # from firebase_admin import credentials
 # cred = credentials.Certificate('serviceAccountKey.json')
 # firebase_admin.initialize_app(cred)
-# save_room_data_to_firestore('ok')
+# run('ok')
