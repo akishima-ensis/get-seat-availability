@@ -5,7 +5,14 @@ import firebase_admin
 from firebase_admin import firestore
 from datetime import datetime, timedelta, timezone
 
+
+# firestoreに保存するかどうかのフラグ
 do_save = False
+
+# firebase初期化（デバッグ時は以下3行をコメントアウト）
+if len(firebase_admin._apps) == 0:
+    firebase_admin.initialize_app()
+db = firestore.client()
 
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
@@ -129,11 +136,6 @@ def save_room_data_to_firestore():
     date = now.strftime('%Y%m%d')
     time = now.strftime('%H%M')
 
-    # firebaseの初期化（デバッグ時は以下2行をコメントアウト）
-    if len(firebase_admin._apps) == 0:
-        firebase_admin.initialize_app()
-    db = firestore.client()
-
     # ドキュメントの存在確認を行いデータを保存
     doc_ref = db.collection('rooms').document(date)
     doc = doc_ref.get()
@@ -158,4 +160,5 @@ def run(Request):
 # from firebase_admin import credentials
 # cred = credentials.Certificate('serviceAccountKey.json')
 # firebase_admin.initialize_app(cred)
+# db = firestore.client()
 # run('ok')
