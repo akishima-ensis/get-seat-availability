@@ -146,6 +146,8 @@ def save_room_data_to_firestore():
 
 
 def delete_room_data_from_firestore():
+
+    # ドキュメント数が10を上回ったら一番古いドキュメントを削除する
     doc_ids = sorted([i.id for i in db.collection('rooms').stream()])
     if len(doc_ids) > 10:
         db.collection('rooms').document(doc_ids[0]).delete()
