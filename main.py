@@ -145,13 +145,23 @@ def save_room_data_to_firestore():
         doc_ref.set({time: rooms})
 
 
+def delete_room_data_from_firestore():
+    doc_ids = sorted([i.id for i in db.collection('rooms').stream()])
+    if len(doc_ids) > 10:
+        db.collection('rooms').document(doc_ids[0]).delete()
+
+
 def run(Request):
 
     # 座席情報の取得
     get_seat_data()
 
+    # 座席情報の保存
     if do_save:
         save_room_data_to_firestore()
+
+    # 古い座席情報の削除
+    delete_room_data_from_firestore()
 
     return 'ok'
 
