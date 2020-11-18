@@ -1,0 +1,25 @@
+name: deploy
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: GoogleCloudPlatform/github-actions/deploy-cloud-functions@master
+        with:
+          name: get-seat-availability
+          runtime: python38
+          credentials: ${{ secrets.gcp_credentials }}
+          entry_point: run
+          region: asia-northeast1
+          source_dir: .
