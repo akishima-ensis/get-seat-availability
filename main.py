@@ -82,12 +82,16 @@ rooms = [
 
 def get_seat_data():
 
+    print('run [get_seat_data]')
+
     global do_save
 
     # ステータスコードが200以外だったらなんもしないで返す
     r = requests.get(target_url)
     if r.status_code != 200:
+        print(f'* target_urlへのリクエストに失敗しました')
         return
+    print(f'* target_urlへのリクエストに成功しました')
 
     soup = BeautifulSoup(r.text, 'lxml')
 
@@ -130,6 +134,8 @@ def get_seat_data():
 
 def save_room_data_to_firestore():
 
+    print('\nrun [save_room_data_to_firestore]')
+
     # ドキュメント・フィールド名の生成
     jst = timezone(timedelta(hours=+9), 'JST')
     now = datetime.now(jst)
@@ -146,6 +152,8 @@ def save_room_data_to_firestore():
 
 
 def delete_room_data_from_firestore():
+
+    print('\nrun [delete_room_data_from_firestore]')
 
     # ドキュメント数が10を上回ったら一番古いドキュメントを削除する
     doc_ids = sorted([i.id for i in db.collection('rooms').stream()])
