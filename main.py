@@ -111,15 +111,14 @@ def get_seat_data():
         # 各部屋の座席情報を取得
         seat = [i.text for i in seats[room['id'] + 1].find_all('div')]
 
-        # 閉館 or 開館前 or 休館日 だった場合は保存フラグをFalseにして返す
-        if seat[0] == '閉\u3000館' or seat[0] == '開館前' or seat[0] == '休館日':
-            return
+        # 数字以外、満席以外（閉館、開館前、休館日）だった場合保存フラグをFalseにして返す
+        if seat[0].isdecimal():
+            do_save = True
+            room['seats_num'] = int(seat[0])
         elif seat[0] == '満\u3000席':
             do_save = True
         else:
-            # 空席数
-            do_save = True
-            room['seats_num'] = int(seat[0])
+            return
 
         # web空き情報
         if seat[1] != '':
