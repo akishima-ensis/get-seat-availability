@@ -105,6 +105,7 @@ def get_seat_data():
         update_str_re.insert(8, '0')
     update_strptime = datetime.strptime(''.join(update_str_re), '%Y%m%d%H%M')
     update = update_strptime.strftime('%Y/%m/%d %H:%M')
+    print(f'* update: {update}')
 
     for room in rooms:
 
@@ -118,6 +119,7 @@ def get_seat_data():
         elif seat[0] == '満\u3000席':
             do_save = True
         else:
+            print('* 現在は閉館時間です')
             return
 
         # web空き情報
@@ -129,6 +131,8 @@ def get_seat_data():
 
         # サイト内更新時間
         room['update'] = update
+
+        print('* firestoreにデータを保存します')
 
 
 def save_room_data_to_firestore():
