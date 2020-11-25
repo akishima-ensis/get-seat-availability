@@ -132,7 +132,7 @@ def get_seat_data():
         # サイト内更新時間
         room['update'] = update
 
-        print('* firestoreにデータを保存します')
+    print('* 各学習室の空席状況を取得しました')
 
 
 def save_room_data_to_firestore():
