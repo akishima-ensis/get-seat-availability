@@ -119,6 +119,7 @@ def get_seat_data():
         elif seat[0] == '満\u3000席':
             do_save = True
         else:
+            do_save = False
             print('* 現在は閉館時間です')
             return
 
