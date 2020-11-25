@@ -1,6 +1,8 @@
 .git
 .gitignore
+.github
 .DS_Store
 .idea
 .gcloudignore
 serviceAccountKey.json
+README.md
