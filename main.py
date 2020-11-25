@@ -13,3 +13,5 @@ def run(Request):
 
     # 古い座席情報の削除
     gsa.delete_room_data_from_firestore()
+
+    return 'ok'
