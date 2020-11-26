@@ -87,7 +87,8 @@ class GetSeatAvailability:
             firebase_admin.initialize_app(cred)
             return firestore.client()
         else:
-            firebase_admin.initialize_app()
+            if len(firebase_admin._apps) == 0:
+                firebase_admin.initialize_app()
             return firestore.client()
 
 
