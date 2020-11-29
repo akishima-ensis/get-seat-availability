@@ -144,12 +144,11 @@ def save_room_data_to_firestore():
     time = now.strftime('%H%M')
 
     # ドキュメントの存在確認を行いデータを保存
-    doc_ref = db.collection('rooms').document(date)
-    doc = doc_ref.get()
-    if doc.exists:
-        doc_ref.update({time: rooms})
+    rooms_ref = db.collection('rooms').document(date)
+    if rooms_ref.get().exists:
+        rooms_ref.update({time: rooms})
     else:
-        doc_ref.set({time: rooms})
+        rooms_ref.set({time: rooms})
 
 
 def delete_room_data_from_firestore():
