@@ -165,7 +165,9 @@ def delete_room_data_from_firestore():
 def run(Request):
 
     # 座席情報の取得
+    print(rooms)
     get_seat_data()
+    print(rooms)
 
     # 座席情報の保存
     if do_save:
