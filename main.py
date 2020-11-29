@@ -183,7 +183,7 @@ def run(Request):
     if now.hour == 10 and now.minute == 0:
         delete_room_data_from_firestore()
 
-    return
+    return 'ok'
 
 
 # debug
