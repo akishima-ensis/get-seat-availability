@@ -17,13 +17,6 @@ db = firestore.client()
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
 rooms = [
-    # - id : 部屋のid
-    # - name: 部屋の名前
-    # - seats_num: 空席数
-    # - web_seats_num: web予約可能座席数
-    # - total_seats_num: 総座席数
-    # - update: サイト内更新時間
-
     {
         'id': 0,
         'name': '学習席（有線LAN有）',
