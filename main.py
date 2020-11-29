@@ -80,6 +80,11 @@ rooms = [
 ]
 
 
+def get_time():
+    jst = timezone(timedelta(hours=+9), 'JST')
+    return datetime.now(jst)
+
+
 def get_seat_data():
 
     print('run [get_seat_data]')
@@ -141,8 +146,7 @@ def save_room_data_to_firestore():
     print('\nrun [save_room_data_to_firestore]')
 
     # ドキュメント・フィールド名の生成
-    jst = timezone(timedelta(hours=+9), 'JST')
-    now = datetime.now(jst)
+    now = get_time()
     date = now.strftime('%Y%m%d')
     time = now.strftime('%H%M')
 
@@ -175,9 +179,11 @@ def run(Request):
         save_room_data_to_firestore()
 
     # 古い座席情報の削除
-    delete_room_data_from_firestore()
+    now = get_time()
+    if now.hour == 10 and now.minute == 0:
+        delete_room_data_from_firestore()
 
-    return 'ok'
+    return
 
 
 # debug
