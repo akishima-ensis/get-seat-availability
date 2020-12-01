@@ -22,7 +22,9 @@ db = firestore.client()
 # スクレイピング対象URL
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
-# firestoreに保存する部屋情報データの雛形
+session = requests.Session()
+
+# firestoreに保存するデータの雛形
 rooms = [
     {
         'id': 0,
@@ -92,7 +94,7 @@ def get_seat_data():
     global do_save
 
     # ステータスコードが200以外だったらなんもしないで返す
-    r = requests.get(target_url)
+    r = session.get(target_url)
     if r.status_code != 200:
         print(f'* target_urlへのリクエストに失敗しました')
         return
@@ -171,9 +173,7 @@ def delete_room_data_from_firestore():
 def run(Request):
 
     # 座席情報の取得
-    print(rooms)
     get_seat_data()
-    print(rooms)
 
     # 座席情報の保存
     if do_save:
