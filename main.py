@@ -1,21 +1,28 @@
+import os
 import re
 import requests
 from bs4 import BeautifulSoup
 import firebase_admin
-from firebase_admin import firestore
+from firebase_admin import credentials, firestore
 from datetime import datetime, timedelta, timezone
 
 
 # firestoreに保存するかどうかのフラグ
 do_save = False
 
-# firebase初期化（デバッグ時は以下3行をコメントアウト）
-if len(firebase_admin._apps) == 0:
+# firebase初期化
+cred_key = 'serviceAccountKey.json'
+if os.path.exists(cred_key):
+    cred = credentials.Certificate(cred_key)
+    firebase_admin.initialize_app(cred)
+else:
     firebase_admin.initialize_app()
 db = firestore.client()
 
+# スクレイピング対象URL
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
 
+# firestoreに保存する部屋情報データの雛形
 rooms = [
     {
         'id': 0,
@@ -179,8 +186,4 @@ def run(Request):
 
 
 # debug
-# from firebase_admin import credentials
-# cred = credentials.Certificate('serviceAccountKey.json')
-# firebase_admin.initialize_app(cred)
-# db = firestore.client()
-# run('ok')
+# run(True)
