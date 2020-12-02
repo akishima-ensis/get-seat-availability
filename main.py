@@ -13,6 +13,12 @@ do_save = False
 # firestoreに保存するデータの雛形を入れる変数
 rooms = []
 
+# スクレイピング対象URL
+target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
+
+# 永続的な接続の確保
+session = requests.Session()
+
 # firebase初期化
 cred_key = 'serviceAccountKey.json'
 if os.path.exists(cred_key):
@@ -22,13 +28,9 @@ else:
     firebase_admin.initialize_app()
 db = firestore.client()
 
-# スクレイピング対象URL
-target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
-
-session = requests.Session()
-
 
 def init_rooms():
+    print('### init_rooms ###')
     global rooms
     rooms = [
         {
@@ -88,12 +90,11 @@ def get_time():
 
 
 def get_seat_data():
-
-    print('run [get_seat_data]')
+    print('\n### get_seat_data ###')
 
     global do_save
 
-    # ステータスコードが200以外だったらなんもしないで返す
+    # リクエスト
     r = session.get(target_url)
     if r.status_code != 200:
         print(f'* target_urlへのリクエストに失敗しました')
@@ -120,7 +121,7 @@ def get_seat_data():
         # 各部屋の座席情報を取得
         seat = [i.text for i in seats[room['id']].find_all('div')]
 
-        # 数字以外、満席以外（閉館、開館前、休館日）だった場合保存フラグをFalseにして返す
+        # 空席数
         if seat[0].isdecimal():
             do_save = True
             room['seats_num'] = int(seat[0])
@@ -131,7 +132,7 @@ def get_seat_data():
             print('* 現在は閉館時間です')
             return
 
-        # web空き情報
+        # web空き数
         if seat[1].isdecimal():
             room['web_seats_num'] = int(seat[1])
 
@@ -145,15 +146,10 @@ def get_seat_data():
 
 
 def save_room_data_to_firestore():
-
-    print('\nrun [save_room_data_to_firestore]')
-
-    # ドキュメント・フィールド名の生成
+    print('\n### save_room_data_to_firestore ###')
     now = get_time()
     date = now.strftime('%Y%m%d')
     time = now.strftime('%H%M')
-
-    # ドキュメントの存在確認を行いデータを保存
     rooms_ref = db.collection('rooms').document(date)
     if rooms_ref.get().exists:
         rooms_ref.update({time: rooms})
@@ -162,10 +158,7 @@ def save_room_data_to_firestore():
 
 
 def delete_room_data_from_firestore():
-
-    print('\nrun [delete_room_data_from_firestore]')
-
-    # ドキュメント数が30を上回ったら一番古いドキュメントを削除する
+    print('\n### delete_room_data_from_firestore ###')
     doc_ids = sorted([i.id for i in db.collection('rooms').stream()])
     if len(doc_ids) > 30:
         db.collection('rooms').document(doc_ids[0]).delete()
