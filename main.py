@@ -20,9 +20,9 @@ target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Log
 session = requests.Session()
 
 # firebase初期化
-cred_key = 'serviceAccountKey.json'
-if os.path.exists(cred_key):
-    cred = credentials.Certificate(cred_key)
+sa_key_path = 'sa_key.json'
+if os.path.exists(sa_key_path):
+    cred = credentials.Certificate(sa_key_path)
     firebase_admin.initialize_app(cred)
 else:
     firebase_admin.initialize_app()
