@@ -98,10 +98,9 @@ def get_seat_data():
     # リクエスト
     r = session.get(target_url)
     if r.status_code != 200:
-        print(f'* target_urlへのリクエストに失敗しました')
+        print(f'* target_urlへのリクエストに失敗しました status_code: {r.status_code}')
         do_save = False
         return
-    print(f'* target_urlへのリクエストに成功しました')
 
     soup = BeautifulSoup(r.text, 'lxml')
 
@@ -115,7 +114,6 @@ def get_seat_data():
         update_str_re.insert(8, '0')
     update_strptime = datetime.strptime(''.join(update_str_re), '%Y%m%d%H%M')
     update = update_strptime.strftime('%Y/%m/%d %H:%M')
-    print(f'* update: {update}')
 
     for room in rooms:
 
@@ -160,6 +158,7 @@ def delete_room_data_from_firestore():
     doc_ids = sorted([i.id for i in db.collection('rooms').stream()])
     if len(doc_ids) > 30:
         db.collection('rooms').document(doc_ids[0]).delete()
+        print(f'* ドキュメントを削除しました document_id: {doc_ids[0]}')
 
 
 def run(Request):
