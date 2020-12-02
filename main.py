@@ -30,7 +30,7 @@ db = firestore.client()
 
 
 def init_rooms():
-    print('### init_rooms ###')
+    print('\n### init_rooms ###')
     global rooms
     rooms = [
         {
@@ -165,6 +165,7 @@ def delete_room_data_from_firestore():
 
 
 def run(Request):
+    print('run...')
 
     # 変数の初期化
     init_rooms()
