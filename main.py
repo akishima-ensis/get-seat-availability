@@ -93,6 +93,7 @@ def get_seat_data():
     print('\n### get_seat_data ###')
 
     global do_save
+    do_save = True
 
     # リクエスト
     r = session.get(target_url)
@@ -123,10 +124,9 @@ def get_seat_data():
 
         # 空席数
         if seat[0].isdecimal():
-            do_save = True
             room['seats_num'] = int(seat[0])
         elif seat[0] == '満\u3000席':
-            do_save = True
+            pass
         else:
             do_save = False
             print('* 現在は閉館時間です')
@@ -141,8 +141,6 @@ def get_seat_data():
 
         # サイト内更新時間
         room['update'] = update
-
-    print('* 各学習室の空席状況を取得しました')
 
 
 def save_room_data_to_firestore():
