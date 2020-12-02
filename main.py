@@ -125,6 +125,7 @@ def get_seat_data():
             room['seats_num'] = int(seat[0])
         elif seat[0] == '満\u3000席':
             do_save = True
+            room['seats_num'] = 0
         else:
             do_save = False
             print('* 現在は閉館時間です')
