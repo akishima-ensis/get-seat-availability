@@ -10,6 +10,9 @@ from datetime import datetime, timedelta, timezone
 # firestoreに保存するかどうかのフラグ
 do_save = False
 
+# firestoreに保存するデータの雛形を入れる変数
+rooms = []
+
 # firebase初期化
 cred_key = 'serviceAccountKey.json'
 if os.path.exists(cred_key):
@@ -24,62 +27,59 @@ target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Log
 
 session = requests.Session()
 
-# firestoreに保存するデータの雛形
-rooms = [
-    {
-        'id': 1,
-        'name': '学習席（有線LAN有）',
-        'seats_num': 0,
-        'web_seats_num': 0,
-        'total_seats_num': 0,
-        'update': '0000/00/00 00:00'
-    },
 
-    {
-        'id': 2,
-        'name': '学習席',
-        'seats_num': 0,
-        'web_seats_num': 0,
-        'total_seats_num': 0,
-        'update': '0000/00/00 00:00'
-    },
-
-    {
-        'id': 3,
-        'name': '研究個室',
-        'seats_num': 0,
-        'web_seats_num': 0,
-        'total_seats_num': 0,
-        'update': '0000/00/00 00:00'
-    },
-
-    {
-        'id': 4,
-        'name': 'インターネット・DB席',
-        'seats_num': 0,
-        'web_seats_num': 0,
-        'total_seats_num': 0,
-        'update': '0000/00/00 00:00'
-    },
-
-    {
-        'id': 5,
-        'name': 'グループ学習室',
-        'seats_num': 0,
-        'web_seats_num': 0,
-        'total_seats_num': 0,
-        'update': '0000/00/00 00:00'
-    },
-
-    {
-        'id': 6,
-        'name': 'ティーンズ学習室',
-        'seats_num': 0,
-        'web_seats_num': 0,
-        'total_seats_num': 0,
-        'update': '0000/00/00 00:00'
-    }
-]
+def init_rooms():
+    global rooms
+    rooms = [
+        {
+            'id': 1,
+            'name': '学習席（有線LAN有）',
+            'seats_num': 0,
+            'web_seats_num': 0,
+            'total_seats_num': 0,
+            'update': '0000/00/00 00:00'
+        },
+        {
+            'id': 2,
+            'name': '学習席',
+            'seats_num': 0,
+            'web_seats_num': 0,
+            'total_seats_num': 0,
+            'update': '0000/00/00 00:00'
+        },
+        {
+            'id': 3,
+            'name': '研究個室',
+            'seats_num': 0,
+            'web_seats_num': 0,
+            'total_seats_num': 0,
+            'update': '0000/00/00 00:00'
+        },
+        {
+            'id': 4,
+            'name': 'インターネット・DB席',
+            'seats_num': 0,
+            'web_seats_num': 0,
+            'total_seats_num': 0,
+            'update': '0000/00/00 00:00'
+        },
+        {
+            'id': 5,
+            'name': 'グループ学習室',
+            'seats_num': 0,
+            'web_seats_num': 0,
+            'total_seats_num': 0,
+            'update': '0000/00/00 00:00'
+        },
+        {
+            'id': 6,
+            'name': 'ティーンズ学習室',
+            'seats_num': 0,
+            'web_seats_num': 0,
+            'total_seats_num': 0,
+            'update': '0000/00/00 00:00'
+        }
+    ]
 
 
 def get_time():
@@ -97,6 +97,7 @@ def get_seat_data():
     r = session.get(target_url)
     if r.status_code != 200:
         print(f'* target_urlへのリクエストに失敗しました')
+        do_save = False
         return
     print(f'* target_urlへのリクエストに成功しました')
 
@@ -125,14 +126,13 @@ def get_seat_data():
             room['seats_num'] = int(seat[0])
         elif seat[0] == '満\u3000席':
             do_save = True
-            room['seats_num'] = 0
         else:
             do_save = False
             print('* 現在は閉館時間です')
             return
 
         # web空き情報
-        if seat[1] != '':
+        if seat[1].isdecimal():
             room['web_seats_num'] = int(seat[1])
 
         # 座席総数
@@ -172,6 +172,9 @@ def delete_room_data_from_firestore():
 
 
 def run(Request):
+
+    # 変数の初期化
+    init_rooms()
 
     # 座席情報の取得
     get_seat_data()
