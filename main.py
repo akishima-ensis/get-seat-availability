@@ -27,7 +27,7 @@ session = requests.Session()
 # firestoreに保存するデータの雛形
 rooms = [
     {
-        'id': 0,
+        'id': 1,
         'name': '学習席（有線LAN有）',
         'seats_num': 0,
         'web_seats_num': 0,
@@ -36,7 +36,7 @@ rooms = [
     },
 
     {
-        'id': 1,
+        'id': 2,
         'name': '学習席',
         'seats_num': 0,
         'web_seats_num': 0,
@@ -45,7 +45,7 @@ rooms = [
     },
 
     {
-        'id': 2,
+        'id': 3,
         'name': '研究個室',
         'seats_num': 0,
         'web_seats_num': 0,
@@ -54,7 +54,7 @@ rooms = [
     },
 
     {
-        'id': 3,
+        'id': 4,
         'name': 'インターネット・DB席',
         'seats_num': 0,
         'web_seats_num': 0,
@@ -63,7 +63,7 @@ rooms = [
     },
 
     {
-        'id': 4,
+        'id': 5,
         'name': 'グループ学習室',
         'seats_num': 0,
         'web_seats_num': 0,
@@ -72,7 +72,7 @@ rooms = [
     },
 
     {
-        'id': 5,
+        'id': 6,
         'name': 'ティーンズ学習室',
         'seats_num': 0,
         'web_seats_num': 0,
@@ -117,7 +117,7 @@ def get_seat_data():
     for room in rooms:
 
         # 各部屋の座席情報を取得
-        seat = [i.text for i in seats[room['id'] + 1].find_all('div')]
+        seat = [i.text for i in seats[room['id']].find_all('div')]
 
         # 数字以外、満席以外（閉館、開館前、休館日）だった場合保存フラグをFalseにして返す
         if seat[0].isdecimal():
