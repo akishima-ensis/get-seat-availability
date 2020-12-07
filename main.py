@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 do_save = False
 
 # firestoreに保存するデータの雛形を入れる変数
-rooms = []
+rooms_data = {}
 
 # スクレイピング対象URL
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
@@ -29,59 +29,51 @@ else:
 db = firestore.client()
 
 
-def init_rooms():
-    print('\n### init_rooms ###')
-    global rooms
-    rooms = [
-        {
-            'id': 1,
-            'name': '学習席（有線LAN有）',
-            'seats_num': 0,
-            'web_seats_num': 0,
-            'total_seats_num': 0,
-            'update': '0000/00/00 00:00'
-        },
-        {
-            'id': 2,
-            'name': '学習席',
-            'seats_num': 0,
-            'web_seats_num': 0,
-            'total_seats_num': 0,
-            'update': '0000/00/00 00:00'
-        },
-        {
-            'id': 3,
-            'name': '研究個室',
-            'seats_num': 0,
-            'web_seats_num': 0,
-            'total_seats_num': 0,
-            'update': '0000/00/00 00:00'
-        },
-        {
-            'id': 4,
-            'name': 'インターネット・DB席',
-            'seats_num': 0,
-            'web_seats_num': 0,
-            'total_seats_num': 0,
-            'update': '0000/00/00 00:00'
-        },
-        {
-            'id': 5,
-            'name': 'グループ学習室',
-            'seats_num': 0,
-            'web_seats_num': 0,
-            'total_seats_num': 0,
-            'update': '0000/00/00 00:00'
-        },
-        {
-            'id': 6,
-            'name': 'ティーンズ学習室',
-            'seats_num': 0,
-            'web_seats_num': 0,
-            'total_seats_num': 0,
-            'update': '0000/00/00 00:00'
-        }
-    ]
+def init_rooms_data():
+    print('\n### init_rooms_data ###')
+    global rooms_data
+    rooms_data = {
+        'status': True,
+        'update': '0000/00/00 00:00',
+        'data': [
+            {
+                'name': '学習席（有線LAN有）',
+                'seats_num': 0,
+                'web_seats_num': 0,
+                'total_seats_num': 0,
+            },
+            {
+                'name': '学習席',
+                'seats_num': 0,
+                'web_seats_num': 0,
+                'total_seats_num': 0,
+            },
+            {
+                'name': '研究個室',
+                'seats_num': 0,
+                'web_seats_num': 0,
+                'total_seats_num': 0,
+            },
+            {
+                'name': 'インターネット・DB席',
+                'seats_num': 0,
+                'web_seats_num': 0,
+                'total_seats_num': 0,
+            },
+            {
+                'name': 'グループ学習室',
+                'seats_num': 0,
+                'web_seats_num': 0,
+                'total_seats_num': 0,
+            },
+            {
+                'name': 'ティーンズ学習室',
+                'seats_num': 0,
+                'web_seats_num': 0,
+                'total_seats_num': 0,
+            }
+        ]
+    }
 
 
 def get_time():
@@ -89,7 +81,7 @@ def get_time():
     return datetime.now(jst)
 
 
-def get_seat_data():
+def get_rooms_data():
     print('\n### get_seat_data ###')
 
     global do_save
@@ -107,18 +99,19 @@ def get_seat_data():
     # 座席情報の取得
     seats = soup.find(class_='seat').find_all('tr')
 
-    # 更新時間の取得
+    # サイト内更新時間の取得
     update_str = soup.find(class_='check_date text-danger').text
     update_str_re = re.findall('\d', update_str)
     if len(update_str_re) == 11:
         update_str_re.insert(8, '0')
     update_strptime = datetime.strptime(''.join(update_str_re), '%Y%m%d%H%M')
     update = update_strptime.strftime('%Y/%m/%d %H:%M')
+    rooms_data['update'] = update
 
-    for room in rooms:
+    for index, room in enumerate(rooms_data['data'], 1):
 
         # 各部屋の座席情報を取得
-        seat = [i.text for i in seats[room['id']].find_all('div')]
+        seat = [i.text for i in seats[index].find_all('div')]
 
         # 空席数
         if seat[0].isdecimal():
@@ -137,23 +130,20 @@ def get_seat_data():
         # 座席総数
         room['total_seats_num'] = int(seat[2])
 
-        # サイト内更新時間
-        room['update'] = update
 
-
-def save_room_data_to_firestore():
+def save_rooms_data_to_firestore():
     print('\n### save_room_data_to_firestore ###')
     now = get_time()
     date = now.strftime('%Y%m%d')
     time = now.strftime('%H%M')
     rooms_ref = db.collection('rooms').document(date)
     if rooms_ref.get().exists:
-        rooms_ref.update({time: rooms})
+        rooms_ref.update({time: rooms_data})
     else:
-        rooms_ref.set({time: rooms})
+        rooms_ref.set({time: rooms_data})
 
 
-def delete_room_data_from_firestore():
+def delete_rooms_data_from_firestore():
     print('\n### delete_room_data_from_firestore ###')
     doc_ids = sorted([i.id for i in db.collection('rooms').stream()])
     if len(doc_ids) > 30:
@@ -165,22 +155,22 @@ def run(Request):
     print('run...')
 
     # 変数の初期化
-    init_rooms()
+    init_rooms_data()
 
     # 座席情報の取得
-    get_seat_data()
+    get_rooms_data()
 
     # 座席情報の保存
     if do_save:
-        save_room_data_to_firestore()
+        save_rooms_data_to_firestore()
 
     # 古い座席情報の削除
     now = get_time()
     if now.hour == 10 and now.minute == 0:
-        delete_room_data_from_firestore()
+        delete_rooms_data_from_firestore()
 
     return 'ok'
 
 
 # debug
-# run(True)
+run(True)
