@@ -33,7 +33,6 @@ def init_rooms_data():
     print('\n### init_rooms_data ###')
     global rooms_data
     rooms_data = {
-        'status': True,
         'update': '0000/00/00 00:00',
         'data': [
             {
