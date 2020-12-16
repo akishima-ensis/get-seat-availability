@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 
 # firestoreに保存するかどうかのフラグ
-do_save = False
+do_save = True
 
 # firestoreに保存するデータの雛形を入れる変数
 rooms_data = {}
@@ -29,10 +29,13 @@ else:
 db = firestore.client()
 
 
-def init_rooms_data():
-    print('\n### init_rooms_data ###')
-    global rooms_data
+def init_vars():
+    print('\n### init_vars ###')
+    global rooms_data, do_save
+    do_save = True
     rooms_data = {
+        'status': True,
+        'status_message': None,
         'update': '0000/00/00 00:00',
         'data': [
             {
@@ -84,16 +87,18 @@ def get_rooms_data():
     print('\n### get_seat_data ###')
 
     global do_save
-    do_save = True
 
     # リクエスト
-    r = session.get(target_url)
-    if r.status_code != 200:
-        print(f'* target_urlへのリクエストに失敗しました status_code: {r.status_code}')
-        do_save = False
+    try:
+        res = session.get(target_url)
+        res.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        rooms_data['status'] = False
+        rooms_data['status_message'] = e
+        print(e)
         return
 
-    soup = BeautifulSoup(r.text, 'lxml')
+    soup = BeautifulSoup(res.text, 'lxml')
 
     # 座席情報の取得
     seats = soup.find(class_='seat').find_all('tr')
@@ -154,7 +159,7 @@ def run(Request):
     print('run...')
 
     # 変数の初期化
-    init_rooms_data()
+    init_vars()
 
     # 座席情報の取得
     get_rooms_data()
