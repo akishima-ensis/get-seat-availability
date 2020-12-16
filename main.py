@@ -35,7 +35,6 @@ def init_vars():
     do_save = True
     rooms_data = {
         'status': True,
-        'status_message': None,
         'update': '0000/00/00 00:00',
         'data': [
             {
@@ -94,7 +93,6 @@ def get_rooms_data():
         res.raise_for_status()
     except requests.exceptions.RequestException as e:
         rooms_data['status'] = False
-        rooms_data['status_message'] = e
         print(e)
         return
 
