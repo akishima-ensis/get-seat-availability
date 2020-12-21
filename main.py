@@ -19,6 +19,10 @@ target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Log
 # 永続的な接続の確保
 session = requests.Session()
 
+# 現在時刻
+jst = timezone(timedelta(hours=+9), 'JST')
+now = datetime.now(jst)
+
 # firebase初期化
 sa_key_path = 'sa_key.json'
 if os.path.exists(sa_key_path):
@@ -31,8 +35,9 @@ db = firestore.client()
 
 def init_vars():
     print('\n### init_vars ###')
-    global rooms_data, do_save
+    global do_save, rooms_data, now
     do_save = True
+    now = datetime.now(jst)
     rooms_data = {
         'status': True,
         'update': '0000/00/00 00:00',
@@ -75,11 +80,6 @@ def init_vars():
             }
         ]
     }
-
-
-def get_time():
-    jst = timezone(timedelta(hours=+9), 'JST')
-    return datetime.now(jst)
 
 
 def get_rooms_data():
@@ -135,7 +135,6 @@ def get_rooms_data():
 
 def save_rooms_data_to_firestore():
     print('\n### save_room_data_to_firestore ###')
-    now = get_time()
     date = now.strftime('%Y%m%d')
     time = now.strftime('%H%M')
     rooms_ref = db.collection('rooms').document(date)
@@ -155,6 +154,7 @@ def delete_rooms_data_from_firestore():
 
 def run(Request):
     print('run...')
+    print(now)
 
     # 変数の初期化
     init_vars()
@@ -167,7 +167,6 @@ def run(Request):
         save_rooms_data_to_firestore()
 
     # 古い座席情報の削除
-    now = get_time()
     if now.hour == 10 and now.minute == 0:
         delete_rooms_data_from_firestore()
 
