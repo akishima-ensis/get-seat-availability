@@ -1,10 +1,12 @@
 import os
 import re
+from datetime import datetime, timedelta, timezone
+
 import requests
 from bs4 import BeautifulSoup
 import firebase_admin
+from fake_useragent import UserAgent
 from firebase_admin import credentials, firestore
-from datetime import datetime, timedelta, timezone
 
 
 # firestoreに保存するかどうかのフラグ
@@ -87,9 +89,14 @@ def get_rooms_data():
 
     global do_save
 
+    headers = {
+        'referer': 'https://www.google.com/',
+        'User-Agent': UserAgent().safari
+    }
+
     # リクエスト
     try:
-        res = session.get(target_url)
+        res = session.get(url=target_url, headers=headers)
         res.raise_for_status()
     except requests.exceptions.RequestException as e:
         rooms_data['status'] = False
