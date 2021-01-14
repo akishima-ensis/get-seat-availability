@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 import requests
 from bs4 import BeautifulSoup
 import firebase_admin
-from fake_useragent import UserAgent
 from firebase_admin import credentials, firestore
 
 
@@ -17,6 +16,12 @@ rooms_data = {}
 
 # スクレイピング対象URL
 target_url = 'https://webreserv.library.akishima.tokyo.jp/webReserv/AreaInfo/Login'
+
+# ヘッダー
+headers = {
+    'referer': 'https://www.google.com/',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
+}
 
 # 永続的な接続の確保
 session = requests.Session()
@@ -88,11 +93,6 @@ def get_rooms_data():
     print('\n### get_seat_data ###')
 
     global do_save
-
-    headers = {
-        'referer': 'https://www.google.com/',
-        'User-Agent': UserAgent().safari
-    }
 
     # リクエスト
     try:
