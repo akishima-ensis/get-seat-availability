@@ -2,4 +2,3 @@ lxml
 requests
 beautifulsoup4
 firebase-admin
-fake-useragent
