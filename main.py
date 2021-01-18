@@ -181,4 +181,4 @@ def run(Request):
 
 
 # debug
-# run(True)
+run('') if bool(os.environ.get('DEBUG')) else None
